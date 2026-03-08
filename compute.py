@@ -286,20 +286,15 @@ if __name__ == "__main__":
         for seq_len in SEQ_LENGTHS:
             try:
                 run_decode_timing_test(model, bs, seq_len)
-            except (
-                getattr(torch, DEVICE).OutOfMemoryError
-                if DEVICE in ["cuda", "npu"]
-                else RuntimeError
-            ):
-                print(
-                    f"\n[OOM Error] Batch Size = {bs}, Seq Length = {seq_len} 导致显存溢出，跳过此配置。"
-                )
-                if DEVICE in ["cuda", "npu"]:
-                    getattr(torch, DEVICE).empty_cache()
             except Exception as e:
-                print(
-                    f"\n[Error] Batch Size = {bs}, Seq Length = {seq_len} 测试失败: {e}"
-                )
+                if "out of memory" in str(e).lower():
+                    print(
+                        f"\n[OOM Error] Batch Size = {bs}, Seq Length = {seq_len} 导致显存溢出，跳过此配置。"
+                    )
+                else:
+                    print(
+                        f"\n[Error] Batch Size = {bs}, Seq Length = {seq_len} 测试失败: {e}"
+                    )
 
             gc.collect()
             if DEVICE in ["cuda", "npu"]:
